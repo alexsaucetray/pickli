@@ -37,10 +37,10 @@ Extract ALL ingredients including sub-ingredients. For each:
 - parentIngredient: if this is a sub-ingredient, the rawName of its parent
 
 RISK LEVEL RULES:
-- "low": Whole foods, benign additives (citric acid, ascorbic acid), safe at any realistic dose
-- "moderate": Added sugars, refined oils, controversial emulsifiers, ingredients with dose-dependent concerns
-- "elevated": Ingredients with consistent observational evidence of harm at typical consumption levels
-- "high": STRICTLY for ingredients with strong evidence of harm: artificial dyes (Red 40, Yellow 5, Yellow 6), BHT, BHA, TBHQ, BVO, potassium bromate. Must have regulatory action or warning labels in at least one major jurisdiction.
+- "low": Whole foods, benign additives (citric acid, ascorbic acid, natural flavors from benign sources), safe at any realistic dose
+- "moderate": Added sugars, refined oils, carrageenan, controversial emulsifiers (polysorbate 80, carboxymethylcellulose), high-fructose corn syrup, ingredients with dose-dependent concerns
+- "elevated": Ingredients with consistent observational or clinical evidence of harm at typical consumption levels — e.g., sodium nitrite/nitrate, TBHQ, partially hydrogenated oils (trans fats), artificial sweeteners (aspartame, saccharin) with ongoing regulatory review, caramel color (Class IV), brominated vegetable oil
+- "high": STRICTLY for ingredients with strong, multi-jurisdictional evidence of harm OR active regulatory bans/warning labels. Examples: artificial dyes (Red 40 / Allura Red, Yellow 5 / Tartrazine, Yellow 6 / Sunset Yellow, Red 3 / Erythrosine, Blue 1, Blue 2, Green 3), BHT, BHA, potassium bromate, brominated vegetable oil (BVO), sodium benzoate in combination with vitamin C, propyl gallate, artificial flavors derived from harmful synthetic compounds. Must have regulatory action, warning label requirement, or ban in at least one major jurisdiction (FDA, EFSA, Health Canada, etc.).
 
 EVIDENCE LEVEL RULES:
 - "strong": Multiple meta-analyses, RCTs, or regulatory action (EFSA warning labels, bans)
@@ -76,33 +76,63 @@ Determine these product-level attributes:
 
 5. HEALTH SCORE (0-100)
 Calculate using these rules:
-Base: 50
-+ High protein (>=10g): +8
-+ High fiber (>=5g): +8
-+ Low sodium (<=140mg): +5
-+ Zero added sugar: +10
-+ Certified organic: +6
-+ Minimal ingredients (1-5): +8
-- Complex ingredients (13+): -2
-- High saturated fat (>=4g): -8 (SKIP if in lowNutrientExpectations)
-- High added sugar (>=10g): -10 (NEVER skip — always penalize)
-- Moderate added sugar (5-9g): -5
-- High sodium (>=460mg): -8 (SKIP if in lowNutrientExpectations)
-- High calories (>=300): -5 (SKIP if in lowNutrientExpectations)
-- Low fiber (<2g): -4 (SKIP if in lowNutrientExpectations)
-- Per HIGH-risk ingredient: -10 (severe penalty)
-- Per ELEVATED-risk ingredient: -4
-- Per MODERATE-risk ingredient: -2
-Clamp result to [0, 100]
+Base: 60
 
-IMPORTANT: Do NOT penalize products for lacking nutrients their category doesn't provide. A 3-ingredient organic almond milk with no additives should score very high — it's doing exactly what it should. A protein bar with low protein is a genuine concern. Context matters.
+POSITIVE FACTORS:
++ Protein 5–9g: +5
++ Protein ≥10g: +10
++ Fiber 3–5g: +5
++ Fiber ≥6g: +10
++ Zero added sugar: +10
++ Certified organic: +10
++ Minimal ingredients (1–5): +5
+
+NEGATIVE FACTORS:
+- Saturated fat ≥4g: -8 (SKIP if "saturated fat" is in lowNutrientExpectations)
+- Added sugar ≥10g: -10 (NEVER skip — always penalize regardless of category)
+- Added sugar 5–9g: -5 (always penalize)
+- Sodium 461–650mg: -5 (SKIP if "sodium" is in lowNutrientExpectations)
+- Sodium >650mg: -10 (SKIP if "sodium" is in lowNutrientExpectations)
+- Calories above category threshold: -5 (see thresholds below, SKIP if "calories" is in lowNutrientExpectations)
+- Per HIGH-risk ingredient: -20 (very severe — artificial dyes, BHT, BHA, BVO, potassium bromate, etc.)
+- Per ELEVATED-risk ingredient: -10
+- Per MODERATE-risk ingredient: -3
+
+CALORIE THRESHOLDS BY PRODUCT TYPE (apply -5 if calories meet or exceed):
+- Still water, unsweetened tea, black coffee, diet beverages: NO penalty
+- Supplements, protein powder, vitamins: NO penalty
+- Cheese, butter, oils, nut butters, nuts/seeds, eggs, dry grains: NO penalty
+- Juice, soda, sports drinks, plant milks: 150 cal
+- Dairy milk: 200 cal
+- RTD coffee drinks, smoothies, meal shakes: 250 cal
+- Yogurt: 200 cal
+- Condiments (ketchup, hot sauce, soy sauce, salsa): 100 cal
+- Dressings, pasta sauces, dips, spreads: 150 cal
+- Chips, crackers, popcorn, pretzels: 200 cal
+- Candy, chocolate: 250 cal
+- Cookies, pastries, muffins: 300 cal
+- Granola bars, energy bars: 300 cal
+- Breakfast cereal, granola, oatmeal: 200 cal
+- Bread, wraps, tortillas, bagels: 200 cal
+- Frozen meals, ready-to-eat entrees, burritos, bowls: 550 cal
+- Pizza: 500 cal
+- Soups, stews, chili: 300 cal
+- Protein bars: 350 cal
+- Ice cream, frozen desserts: 300 cal
+- Jerky, meat snacks, canned fish, deli meats: 200–300 cal
+- Plant-based meats, tofu, tempeh: 300 cal
+- Default (unclassified): 300 cal
+
+Clamp final score to [0, 100].
+
+IMPORTANT: Do NOT penalize products for lacking nutrients their category doesn't provide. A 3-ingredient organic almond milk with no additives should score very high — it's doing exactly what it should. A protein bar with low protein is a genuine concern. A product with a single "high" risk ingredient (e.g., Red 40) should score significantly lower. Context matters.
 
 NOTE: The client will recompute the score deterministically from the structured data. Your score is advisory — the client algorithm is authoritative. Still provide your best estimate.
 
 Provide scoreFactors array showing each factor, its points, and type ("pro"/"con").
 
 6. HEALTH LABEL
-Based on score: 0-25 "Poor", 26-45 "Below Average", 46-60 "Fair", 61-75 "Good", 76-90 "Very Good", 91-100 "Excellent"
+Based on score: 0–25 "Poor", 26–45 "Below Average", 46–60 "Fair", 61–75 "Good", 76–90 "Very Good", 91–100 "Excellent"
 
 7. AI SUMMARY
 Write a 2-sentence expert verdict. First sentence: the product's primary nutritional value proposition. Second sentence: the most significant concern or limitation. Be direct but evidence-based.
