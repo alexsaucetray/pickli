@@ -144,10 +144,16 @@ export function computeHealthScore(analysis: PickliAnalysis): number {
   if (calThreshold !== null && calories >= calThreshold) score -= 5;
 
   // === INGREDIENT RISK PENALTIES ===
+  // avoid:   -25  (strong evidence, bans, warning labels)
+  // concern: -20  (consistent evidence, active regulatory restriction)
+  // caution: -3   (dose-dependent, moderate evidence)
+  // watch:   -1   (refined/processed, worth flagging)
+  // safe:     0
   for (const ing of analysis.ingredients) {
-    if (ing.riskLevel === 'high') score -= 20;
-    else if (ing.riskLevel === 'elevated') score -= 10;
-    else if (ing.riskLevel === 'moderate') score -= 3;
+    if (ing.riskLevel === 'avoid') score -= 25;
+    else if (ing.riskLevel === 'concern') score -= 20;
+    else if (ing.riskLevel === 'caution') score -= 3;
+    else if (ing.riskLevel === 'watch') score -= 1;
   }
 
   return Math.max(0, Math.min(100, score));
@@ -202,12 +208,14 @@ export function buildScoreFactors(analysis: PickliAnalysis): { label: string; po
   }
 
   for (const ing of analysis.ingredients) {
-    if (ing.riskLevel === 'high') {
-      factors.push({ label: `Very high-risk ingredient: ${ing.commonName}`, points: -20, type: 'con' });
-    } else if (ing.riskLevel === 'elevated') {
-      factors.push({ label: `Elevated-risk ingredient: ${ing.commonName}`, points: -10, type: 'con' });
-    } else if (ing.riskLevel === 'moderate') {
-      factors.push({ label: `Moderate-risk ingredient: ${ing.commonName}`, points: -3, type: 'con' });
+    if (ing.riskLevel === 'avoid') {
+      factors.push({ label: `Avoid: ${ing.commonName}`, points: -25, type: 'con' });
+    } else if (ing.riskLevel === 'concern') {
+      factors.push({ label: `Concern: ${ing.commonName}`, points: -20, type: 'con' });
+    } else if (ing.riskLevel === 'caution') {
+      factors.push({ label: `Caution: ${ing.commonName}`, points: -3, type: 'con' });
+    } else if (ing.riskLevel === 'watch') {
+      factors.push({ label: `Watch: ${ing.commonName}`, points: -1, type: 'con' });
     }
   }
 

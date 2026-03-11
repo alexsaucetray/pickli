@@ -79,19 +79,21 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       rawName: "Protein Blend (Whey Protein Isolate, Milk Protein Isolate)",
       commonName: "Protein Blend",
       primaryFunction: "Primary macronutrient source providing essential amino acids for muscle repair and growth.",
-      riskLevel: "low",
+      riskLevel: "safe",
       concerns: [],
       regulatoryStatus: { fda: "GRAS", efsa: "Approved" },
       isAllergen: true,
       isSynthetic: false,
       isAdditive: false,
+      gmoRisk: "not_applicable",
+      certainty: "confirmed",
     },
     {
       position: 2,
       rawName: "Whey Protein Isolate",
       commonName: "Whey Protein",
       primaryFunction: "Fast-absorbing dairy protein with high leucine content for triggering muscle protein synthesis.",
-      riskLevel: "low",
+      riskLevel: "safe",
       concerns: [
         { text: "Contains milk proteins that are common allergens, potentially triggering IgE-mediated immune responses in sensitized individuals.", evidenceLevel: "strong" }
       ],
@@ -101,13 +103,15 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: false,
       isAdditive: false,
       parentIngredient: "Protein Blend",
+      gmoRisk: "not_applicable",
+      certainty: "confirmed",
     },
     {
       position: 3,
       rawName: "Milk Protein Isolate",
       commonName: "Milk Protein",
       primaryFunction: "Slower-digesting casein-dominant protein providing sustained amino acid release.",
-      riskLevel: "low",
+      riskLevel: "safe",
       concerns: [
         { text: "Dairy allergen. Contains both casein and whey fractions that may trigger responses in milk-allergic individuals.", evidenceLevel: "strong" }
       ],
@@ -116,13 +120,15 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: false,
       isAdditive: false,
       parentIngredient: "Protein Blend",
+      gmoRisk: "not_applicable",
+      certainty: "confirmed",
     },
     {
       position: 4,
       rawName: "Yogurt Flavored Coating (Sugar, Fractionated Palm Kernel Oil, Whey Powder, Nonfat Dry Milk, Citric Acid, Soy Lecithin)",
       commonName: "Yogurt Coating",
       primaryFunction: "Provides texture, flavor, and structural integrity to the bar exterior.",
-      riskLevel: "moderate",
+      riskLevel: "caution",
       concerns: [
         { text: "Composite ingredient relying on refined fractionated oils and added sugars to maintain room-temperature stability, reducing overall nutritional density.", evidenceLevel: "moderate" }
       ],
@@ -130,13 +136,16 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isAllergen: false,
       isSynthetic: false,
       isAdditive: false,
+      warningTypes: ["highly_processed"],
+      gmoRisk: "possible",
+      certainty: "likely",
     },
     {
       position: 5,
       rawName: "Sugar",
       commonName: "Added Sugar (Sucrose)",
       primaryFunction: "Sweetener and texture modifier in the yogurt coating.",
-      riskLevel: "moderate",
+      riskLevel: "caution",
       concerns: [
         { text: "Chronic excess consumption of added sucrose is associated with hepatic insulin resistance, elevated triglycerides, and increased risk of metabolic syndrome in large prospective cohort studies.", evidenceLevel: "strong" },
         { text: "The WHO recommends limiting added sugars to <10% of total energy intake, with conditional recommendation for <5%.", evidenceLevel: "strong" }
@@ -147,13 +156,16 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: false,
       isAdditive: true,
       parentIngredient: "Yogurt Coating",
+      warningTypes: ["highly_processed"],
+      gmoRisk: "likely",
+      certainty: "likely",
     },
     {
       position: 6,
       rawName: "Fractionated Palm Kernel Oil",
       commonName: "Palm Oil (Refined)",
       primaryFunction: "Provides solid fat structure for the coating at room temperature.",
-      riskLevel: "moderate",
+      riskLevel: "caution",
       concerns: [
         { text: "High in saturated fatty acids (lauric and myristic acid), which in excess are associated with elevated LDL cholesterol in randomized controlled trials.", evidenceLevel: "moderate" },
         { text: "Fractionation concentrates the saturated fat fraction, though the small quantity used in coatings limits absolute dietary impact.", evidenceLevel: "limited" }
@@ -164,13 +176,16 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: false,
       isAdditive: false,
       parentIngredient: "Yogurt Coating",
+      warningTypes: ["controversial"],
+      gmoRisk: "not_applicable",
+      certainty: "confirmed",
     },
     {
       position: 7,
       rawName: "Citric Acid",
       commonName: "Citric Acid",
       primaryFunction: "Acidity regulator, flavor enhancer, and mild preservative.",
-      riskLevel: "low",
+      riskLevel: "safe",
       concerns: [
         { text: "Industrially produced via Aspergillus niger fermentation, but biologically identical to the citric acid found naturally in citrus fruits. No evidence of adverse effects at typical dietary levels.", evidenceLevel: "theoretical" }
       ],
@@ -179,13 +194,15 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: true,
       isAdditive: true,
       parentIngredient: "Yogurt Coating",
+      gmoRisk: "not_applicable",
+      certainty: "confirmed",
     },
     {
       position: 8,
       rawName: "Soy Lecithin",
       commonName: "Soy Lecithin",
       primaryFunction: "Emulsifier that prevents fat and water separation in the coating.",
-      riskLevel: "low",
+      riskLevel: "watch",
       concerns: [
         { text: "Soy-derived ingredient that may contain trace soy proteins. Most soy-allergic individuals tolerate refined soy lecithin, but those with severe soy allergy should exercise caution.", evidenceLevel: "moderate" }
       ],
@@ -194,13 +211,16 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: false,
       isAdditive: true,
       parentIngredient: "Yogurt Coating",
+      warningTypes: ["gmo_likely", "allergen_adjacent"],
+      gmoRisk: "likely",
+      certainty: "likely",
     },
     {
       position: 9,
       rawName: "Natural Flavors",
       commonName: "Natural Flavors",
       primaryFunction: "Flavor compounds derived from plant or animal sources to enhance taste.",
-      riskLevel: "low",
+      riskLevel: "watch",
       concerns: [
         { text: "Umbrella term that can include hundreds of compounds. While derived from natural sources, the final formulation may be highly processed. Transparency is limited by trade secret protections.", evidenceLevel: "limited" }
       ],
@@ -208,13 +228,19 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isAllergen: false,
       isSynthetic: false,
       isAdditive: true,
+      warningTypes: ["controversial"],
+      gmoRisk: "not_applicable",
+      certainty: "possible",
     },
     {
       position: 10,
       rawName: "Red 40 (Allura Red AC)",
       commonName: "Red 40 (Synthetic Dye)",
       primaryFunction: "Synthetic azo dye used purely for visual color appeal.",
-      riskLevel: "high",
+      riskLevel: "avoid",
+      warningTypes: ["artificial_dye", "hyperactivity_link", "banned_or_restricted", "carcinogen_classified"],
+      gmoRisk: "not_applicable",
+      certainty: "confirmed",
       concerns: [
         { text: "The European Food Safety Authority requires products containing Red 40 to carry a warning label stating it 'may have an adverse effect on activity and attention in children,' based on the 2007 Southampton double-blind RCT (McCann et al.).", evidenceLevel: "strong" },
         { text: "May contain low levels of carcinogenic contaminants (benzidine, 4-aminobiphenyl) as manufacturing byproducts, though typically below FDA-established limits of 1 ppb.", evidenceLevel: "moderate" },

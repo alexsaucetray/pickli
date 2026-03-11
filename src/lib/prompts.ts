@@ -27,7 +27,7 @@ Extract ALL ingredients including sub-ingredients. For each:
 - rawName: exact text from label
 - commonName: plain language name
 - primaryFunction: what this ingredient does in the product
-- riskLevel: "low" / "moderate" / "elevated" / "high"
+- riskLevel: "safe" / "watch" / "caution" / "concern" / "avoid" (see RISK LEVEL RULES below)
 - concerns: array of objects, each with:
   - text: 2-3 sentence scientific explanation citing specific mechanisms, study types, or regulatory actions
   - evidenceLevel: "strong" / "moderate" / "limited" / "theoretical"
@@ -35,12 +35,54 @@ Extract ALL ingredients including sub-ingredients. For each:
 - doseContext: amount in one serving vs daily recommended limit (when applicable)
 - isAllergen, isSynthetic, isAdditive: boolean flags
 - parentIngredient: if this is a sub-ingredient, the rawName of its parent
+- warningTypes: array of applicable warning category strings (see WARNING TYPES below) — omit if none apply
+- gmoRisk: "likely" / "possible" / "certified_non_gmo" / "not_applicable" (see GMO RULES below)
+- certainty: "confirmed" / "likely" / "possible" — how confident you are in this ingredient's classification given the label
 
 RISK LEVEL RULES:
-- "low": Whole foods, benign additives (citric acid, ascorbic acid, natural flavors from benign sources), safe at any realistic dose
-- "moderate": Added sugars, refined oils, carrageenan, controversial emulsifiers (polysorbate 80, carboxymethylcellulose), high-fructose corn syrup, ingredients with dose-dependent concerns
-- "elevated": Ingredients with consistent observational or clinical evidence of harm at typical consumption levels — e.g., sodium nitrite/nitrate, TBHQ, partially hydrogenated oils (trans fats), artificial sweeteners (aspartame, saccharin) with ongoing regulatory review, caramel color (Class IV), brominated vegetable oil
-- "high": STRICTLY for ingredients with strong, multi-jurisdictional evidence of harm OR active regulatory bans/warning labels. Examples: artificial dyes (Red 40 / Allura Red, Yellow 5 / Tartrazine, Yellow 6 / Sunset Yellow, Red 3 / Erythrosine, Blue 1, Blue 2, Green 3), BHT, BHA, potassium bromate, brominated vegetable oil (BVO), sodium benzoate in combination with vitamin C, propyl gallate, artificial flavors derived from harmful synthetic compounds. Must have regulatory action, warning label requirement, or ban in at least one major jurisdiction (FDA, EFSA, Health Canada, etc.).
+Use these five tiers. When uncertain between two tiers, default to the lower one and reflect uncertainty in certainty field.
+
+- "safe": Whole foods, water, simple processing aids, and well-established benign additives with no known concern at realistic doses.
+  Examples: water, salt, vinegar, citric acid, ascorbic acid, spices, herbs, whole grains, fruits, vegetables, yeast, baking soda.
+
+- "watch": Highly refined or heavily processed ingredients where individual sensitivity varies or where overconsumption is worth noting. Not alarming for most people in typical amounts. Score impact: -1.
+  Examples: palm oil, refined cane sugar, maltodextrin, modified food starch, natural flavors (unspecified source), xanthan gum, guar gum, sunflower lecithin, stevia, monk fruit extract, soy lecithin (non-GMO context), natural sweeteners.
+
+- "caution": Ingredients with dose-dependent concerns and moderate scientific backing — some observational data, mechanistic plausibility, or emerging regulatory attention. Common in processed foods. Some populations should limit intake. Score impact: -3.
+  Examples: high-fructose corn syrup, refined soybean/canola oil (in excess), carrageenan, polysorbate 80, carboxymethylcellulose (CMC), sodium phosphates, sucralose, acesulfame-K, caramel color (Class III/IV), soy lecithin (likely-GMO context), isolated soy protein (likely-GMO), corn-derived ingredients (likely-GMO).
+
+- "concern": Ingredients with consistent clinical or epidemiological evidence of harm at typical consumption, or under active regulatory restriction or review in at least one major jurisdiction. Warrants real attention and transparent communication. Score impact: -20.
+  Examples: sodium nitrite/nitrate (processed meats), TBHQ, BHT, BHA, propyl gallate, partially hydrogenated oils (trans fats), aspartame (IARC 2023 Group 2B "possibly carcinogenic"), titanium dioxide (banned in EU food since 2022), Red 3 / Erythrosine (FDA banned in cosmetics, restricted in food), artificial flavors (when derived from synthetic chemical compounds).
+
+- "avoid": Ingredients with strong multi-jurisdictional evidence of harm, mandatory warning labels required by a major food authority, or active bans. No reasonable justification for inclusion in everyday food. Score impact: -25.
+  Examples: Red 40 / Allura Red (EFSA mandatory hyperactivity warning label), Yellow 5 / Tartrazine (EFSA warning), Yellow 6 / Sunset Yellow (EFSA warning), Blue 1 / Brilliant Blue (EFSA concerns), Blue 2 / Indigo Carmine, Green 3 / Fast Green, BVO / brominated vegetable oil (FDA ban 2023), potassium bromate (banned EU, Canada, and most countries), sodium benzoate when combined with ascorbic acid/vitamin C (forms benzene, a known carcinogen).
+
+WARNING TYPES:
+Assign all applicable warning type strings from this list to the warningTypes array. These are shown directly to users to explain WHY an ingredient is flagged:
+- "gmo_likely"            — Ingredient is commonly sourced from GMO crops in the US/Canada market, but cannot be confirmed without certification. Organic certification negates this.
+- "artificial_dye"        — Synthetic color additive with documented safety concerns or mandatory warning labels.
+- "preservative_concern"  — Chemical preservative with dose-dependent or combination toxicity concerns.
+- "carcinogen_classified" — Classified as possible, probable, or known carcinogen by IARC, EFSA, NTP, or equivalent body.
+- "banned_or_restricted"  — Actively banned, phased out, or requires mandatory warning labels in at least one major jurisdiction.
+- "trans_fat"             — Artificial trans fatty acid with well-established cardiovascular harm.
+- "nitrosamine_precursor" — Forms carcinogenic nitrosamines during processing or digestion (especially in the presence of amines in meat).
+- "gut_disruptor"         — Evidence of negative effects on gut microbiome composition or intestinal lining integrity at typical doses.
+- "endocrine_concern"     — Evidence of potential interference with hormonal signaling, often dose- or population-dependent.
+- "hyperactivity_link"    — Specifically associated with hyperactivity and behavioral issues in children in controlled studies; some authorities require warning labels.
+- "highly_processed"      — Result of intensive chemical processing; low inherent nutritional value; a marker of ultra-processed food.
+- "allergen_adjacent"     — Not a recognized top-14 allergen but associated with reactions in a meaningful portion of the general population.
+- "controversial"         — Evidence is genuinely mixed or contested — include only when the scientific debate is real and ongoing, not just theoretical.
+
+GMO RULES:
+- "likely": Ingredient is commonly sourced from GMO crops in North America. Use for: soy (soybean oil, soy flour, soy protein, soy lecithin unless organic), corn (corn syrup, cornstarch, corn flour, dextrose), canola (canola oil), cottonseed oil, beet sugar/sugar (unless labeled cane sugar), papaya (from Hawaii).
+- "possible": Ingredient may be GMO-derived but is less commonly so, or the labeling is ambiguous. Use for: alfalfa, some starches, certain modified food starches.
+- "certified_non_gmo": Product carries USDA Organic, Non-GMO Project Verified, or equivalent certification, OR the ingredient itself is labeled "organic" or "non-GMO." If isOrganic is true for the product, ALL soy/corn ingredients should be certified_non_gmo.
+- "not_applicable": Ingredient is not derived from any crop that has a commercialized GMO variant. Use for: citric acid, salt, vinegar, most minerals and vitamins, animal-derived ingredients, wheat, most spices.
+
+CERTAINTY RULES:
+- "confirmed": Ingredient identity and risk level are unambiguous from the label text (e.g., "Red 40", "sodium nitrite", "partially hydrogenated soybean oil").
+- "likely": Strong inference from ingredient name but not fully explicit (e.g., "natural flavor" in a product where synthetic origin is probable, or "soybean oil" where GMO is probable).
+- "possible": Ingredient could be the concerning form but isn't necessarily. Use when you cannot determine risk classification with confidence from the label alone.
 
 EVIDENCE LEVEL RULES:
 - "strong": Multiple meta-analyses, RCTs, or regulatory action (EFSA warning labels, bans)
@@ -94,9 +136,10 @@ NEGATIVE FACTORS:
 - Sodium 461–650mg: -5 (SKIP if "sodium" is in lowNutrientExpectations)
 - Sodium >650mg: -10 (SKIP if "sodium" is in lowNutrientExpectations)
 - Calories above category threshold: -5 (see thresholds below, SKIP if "calories" is in lowNutrientExpectations)
-- Per HIGH-risk ingredient: -20 (very severe — artificial dyes, BHT, BHA, BVO, potassium bromate, etc.)
-- Per ELEVATED-risk ingredient: -10
-- Per MODERATE-risk ingredient: -3
+- Per AVOID-tier ingredient: -25 (strong evidence, bans, or mandatory warning labels)
+- Per CONCERN-tier ingredient: -20 (consistent evidence, active regulatory restriction)
+- Per CAUTION-tier ingredient: -3 (dose-dependent, moderate evidence)
+- Per WATCH-tier ingredient: -1 (refined/processed, worth noting)
 
 CALORIE THRESHOLDS BY PRODUCT TYPE (apply -5 if calories meet or exceed):
 - Still water, unsweetened tea, black coffee, diet beverages: NO penalty
@@ -219,11 +262,15 @@ export const ANALYSIS_SCHEMA = {
           isSynthetic: { type: "BOOLEAN" as const },
           isAdditive: { type: "BOOLEAN" as const },
           parentIngredient: { type: "STRING" as const },
+          warningTypes: { type: "ARRAY" as const, items: { type: "STRING" as const } },
+          gmoRisk: { type: "STRING" as const },
+          certainty: { type: "STRING" as const },
         },
         required: [
           "position", "rawName", "commonName", "primaryFunction",
           "riskLevel", "concerns", "regulatoryStatus",
           "isAllergen", "isSynthetic", "isAdditive",
+          "gmoRisk", "certainty",
         ],
       },
     },
