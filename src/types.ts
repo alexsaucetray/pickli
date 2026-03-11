@@ -60,6 +60,12 @@ export interface PickliAnalysis {
   cons: string[];
   ingredients: IngredientEntry[];
   scoreFactors: ScoreFactor[];
+  /** Whether the product carries an organic certification */
+  isOrganic: boolean;
+  /** How simple the ingredient list is: minimal (1-5), moderate (6-12), complex (13+) */
+  ingredientSimplicity: 'minimal' | 'moderate' | 'complex';
+  /** Nutrients this product category is NOT expected to excel at — penalties are suppressed for these */
+  lowNutrientExpectations: string[];
 }
 
 export interface ScanHistoryItem {

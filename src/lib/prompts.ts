@@ -57,35 +57,57 @@ LANGUAGE RULES (MANDATORY):
 - NEVER use fear-mongering language: "deadly", "poison", "cancer-causing"
 - Always qualify with evidence level
 
-4. HEALTH SCORE (0-100)
+4. PRODUCT QUALITY SIGNALS
+Determine these product-level attributes:
+- isOrganic: true if the product has any organic certification (USDA Organic, EU Organic, etc.) visible on packaging or if "organic" appears in ingredient list
+- ingredientSimplicity: classify based on total unique base ingredients (excluding sub-ingredients):
+  - "minimal": 1-5 ingredients (clean, simple product)
+  - "moderate": 6-12 ingredients (typical processed food)
+  - "complex": 13+ ingredients (highly processed)
+- lowNutrientExpectations: array of nutrient names this product category is NOT expected to provide. This is critical for fair scoring. Examples:
+  - Almond milk / plant milks: ["protein", "fiber"] — these are beverages, not protein sources
+  - Condiments / sauces: ["protein", "fiber", "calories"] — used in small amounts
+  - Cooking oils: ["protein", "fiber", "sodium"] — pure fat is their purpose
+  - Water / sparkling water: ["protein", "fiber", "calories", "sodium"]
+  - Snack chips: ["protein"] — primarily a carb/fat snack
+  - Candy / sweets: ["protein", "fiber"] — known indulgence
+  - Coffee / tea: ["protein", "fiber", "calories"]
+  Think carefully about what the product IS and what nutrients would be unreasonable to expect from it.
+
+5. HEALTH SCORE (0-100)
 Calculate using these rules:
 Base: 50
 + High protein (>=10g): +8
 + High fiber (>=5g): +8
 + Low sodium (<=140mg): +5
 + Zero added sugar: +10
-- High saturated fat (>=4g): -8
-- High added sugar (>=10g): -10
++ Certified organic: +6
++ Minimal ingredients (1-5): +8
+- Complex ingredients (13+): -2
+- High saturated fat (>=4g): -8 (SKIP if in lowNutrientExpectations)
+- High added sugar (>=10g): -10 (NEVER skip — always penalize)
 - Moderate added sugar (5-9g): -5
-- High sodium (>=460mg): -8
-- High calories (>=300): -5
-- Low fiber (<2g): -4
+- High sodium (>=460mg): -8 (SKIP if in lowNutrientExpectations)
+- High calories (>=300): -5 (SKIP if in lowNutrientExpectations)
+- Low fiber (<2g): -4 (SKIP if in lowNutrientExpectations)
 - Per HIGH-risk ingredient: -10 (severe penalty)
 - Per ELEVATED-risk ingredient: -4
 - Per MODERATE-risk ingredient: -2
 Clamp result to [0, 100]
 
+IMPORTANT: Do NOT penalize products for lacking nutrients their category doesn't provide. A 3-ingredient organic almond milk with no additives should score very high — it's doing exactly what it should. A protein bar with low protein is a genuine concern. Context matters.
+
 NOTE: The client will recompute the score deterministically from the structured data. Your score is advisory — the client algorithm is authoritative. Still provide your best estimate.
 
 Provide scoreFactors array showing each factor, its points, and type ("pro"/"con").
 
-5. HEALTH LABEL
+6. HEALTH LABEL
 Based on score: 0-25 "Poor", 26-45 "Below Average", 46-60 "Fair", 61-75 "Good", 76-90 "Very Good", 91-100 "Excellent"
 
-6. AI SUMMARY
+7. AI SUMMARY
 Write a 2-sentence expert verdict. First sentence: the product's primary nutritional value proposition. Second sentence: the most significant concern or limitation. Be direct but evidence-based.
 
-7. PROS AND CONS
+8. PROS AND CONS
 - pros: 3-4 specific positive attributes with scientific basis
 - cons: 3-4 specific concerns with evidence references
 
@@ -175,11 +197,15 @@ export const ANALYSIS_SCHEMA = {
         ],
       },
     },
+    isOrganic: { type: "BOOLEAN" as const },
+    ingredientSimplicity: { type: "STRING" as const },
+    lowNutrientExpectations: { type: "ARRAY" as const, items: { type: "STRING" as const } },
   },
   required: [
     "productName", "productCategory", "healthScore", "healthLabel",
     "aiSummary", "servingSize", "calories", "protein", "carbs", "fat",
     "macroDetails", "pros", "cons", "scoreFactors", "ingredients",
+    "isOrganic", "ingredientSimplicity", "lowNutrientExpectations",
   ],
 };
 

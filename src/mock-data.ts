@@ -226,5 +226,8 @@ export const MOCK_ANALYSIS: PickliAnalysis = {
       isSynthetic: true,
       isAdditive: true,
     },
-  ]
+  ],
+  isOrganic: false,
+  ingredientSimplicity: 'complex',
+  lowNutrientExpectations: [],
 };
