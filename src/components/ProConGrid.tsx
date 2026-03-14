@@ -1,4 +1,4 @@
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 interface Props {
   pros: string[];
@@ -8,38 +8,48 @@ interface Props {
 export default function ProConGrid({ pros, cons }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      {/* Pros column */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-1.5 mb-3">
+      <div className="pickle-card-soft rounded-[26px] p-4">
+        <div className="mb-3 flex items-center gap-1.5">
           <ThumbsUp className="w-4 h-4 text-mint-600" />
-          <span className="text-[10px] font-bold text-mint-600 uppercase tracking-widest">Pros</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-mint-600">
+            Pros
+          </span>
         </div>
-        {pros.map((p, i) => (
-          <div
-            key={i}
-            className="bg-mint-100/50 border border-mint-200/60 rounded-xl p-3 animate-fade-in-up"
-            style={{ animationDelay: `${i * 60}ms` }}
-          >
-            <p className="text-xs font-medium text-pickle-700 leading-relaxed">{p}</p>
-          </div>
-        ))}
+        <div className="space-y-2">
+          {pros.map((p, i) => (
+            <div
+              key={i}
+              className="rounded-[18px] bg-mint-50 px-3 py-3 animate-fade-in-up"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <p className="text-xs font-medium leading-relaxed text-pickle-700">
+                {p}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Cons column */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-1.5 mb-3">
+      <div className="pickle-card-soft rounded-[26px] p-4">
+        <div className="mb-3 flex items-center gap-1.5">
           <ThumbsDown className="w-4 h-4 text-coral-400" />
-          <span className="text-[10px] font-bold text-coral-400 uppercase tracking-widest">Cons</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-coral-400">
+            Cons
+          </span>
         </div>
-        {cons.map((c, i) => (
-          <div
-            key={i}
-            className="bg-coral-50 border border-coral-200/60 rounded-xl p-3 animate-fade-in-up"
-            style={{ animationDelay: `${i * 60}ms` }}
-          >
-            <p className="text-xs font-medium text-pickle-700 leading-relaxed">{c}</p>
-          </div>
-        ))}
+        <div className="space-y-2">
+          {cons.map((c, i) => (
+            <div
+              key={i}
+              className="rounded-[18px] bg-coral-50/90 px-3 py-3 animate-fade-in-up"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <p className="text-xs font-medium leading-relaxed text-pickle-700">
+                {c}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
