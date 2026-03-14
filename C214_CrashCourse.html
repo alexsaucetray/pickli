@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C214 Financial Management — Crash Course</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--accent:#3b82f6;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--orange:#f59e0b;--text:#e2e8f0;--dim:#94a3b8;--border:#334155}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:16px}
+
+/* NAV */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap;gap:8px}
+.topbar h1{font-size:1.3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.progress-bar-wrap{width:100%;height:8px;background:var(--card);border-radius:4px;margin-top:8px}
+.progress-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .4s}
+.stat{font-size:.8rem;color:var(--dim)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;scrollbar-width:thin}
+.tab{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;white-space:nowrap;font-size:.82rem;transition:all .2s}
+.tab:hover{border-color:var(--accent);color:var(--text)}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab .badge{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:10px;font-size:.7rem;background:rgba(255,255,255,.15)}
+.tab.done .badge{background:var(--green);color:#000}
+
+/* VIEWS */
+.view{display:none}
+.view.active{display:block}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:1.1rem;margin-bottom:12px;color:var(--accent)}
+.card h3{font-size:.95rem;margin:12px 0 6px;color:var(--orange)}
+.formula{background:#0c1425;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:8px 0;font-family:'Cascadia Code','Fira Code',monospace;font-size:.85rem;color:var(--green);white-space:pre-wrap;line-height:1.6}
+.concept{margin:8px 0;padding:10px 14px;border-left:3px solid var(--accent2);background:rgba(139,92,246,.08);border-radius:0 8px 8px 0;font-size:.9rem;line-height:1.5}
+.tip{margin:8px 0;padding:10px 14px;border-left:3px solid var(--orange);background:rgba(245,158,11,.08);border-radius:0 8px 8px 0;font-size:.88rem}
+
+/* QUIZ */
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.quiz-header h2{margin:0}
+.q-counter{color:var(--dim);font-size:.85rem}
+.question{font-size:1rem;line-height:1.5;margin-bottom:16px}
+.options{display:flex;flex-direction:column;gap:8px}
+.option{padding:12px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;font-size:.92rem;line-height:1.4}
+.option:hover:not(.disabled){border-color:var(--accent);background:rgba(59,130,246,.08)}
+.option.selected{border-color:var(--accent);background:rgba(59,130,246,.12)}
+.option.correct{border-color:var(--green)!important;background:rgba(34,197,94,.12)!important}
+.option.wrong{border-color:var(--red)!important;background:rgba(239,68,68,.1)!important}
+.option.disabled{cursor:default;opacity:.7}
+.option.disabled.correct{opacity:1}
+.explanation{margin-top:14px;padding:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:10px;font-size:.9rem;line-height:1.5;display:none}
+.explanation.show{display:block}
+.quiz-nav{display:flex;justify-content:space-between;margin-top:16px;gap:8px}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-size:.9rem;cursor:pointer;font-weight:600;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#2563eb}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--accent)}
+.btn-success{background:var(--green);color:#000}.btn-success:hover{background:#16a34a}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* SCORE */
+.score-card{text-align:center;padding:32px}
+.score-big{font-size:3.5rem;font-weight:800;margin:12px 0}
+.score-big.pass{color:var(--green)}.score-big.fail{color:var(--red)}.score-big.ok{color:var(--orange)}
+.score-label{color:var(--dim);font-size:1rem}
+.score-msg{margin:12px 0;font-size:1.1rem}
+
+/* FLASHCARD */
+.fc-container{perspective:1000px;margin:16px auto;max-width:600px;cursor:pointer}
+.fc-inner{position:relative;width:100%;min-height:220px;transition:transform .5s;transform-style:preserve-3d}
+.fc-inner.flipped{transform:rotateY(180deg)}
+.fc-front,.fc-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.fc-front{background:linear-gradient(135deg,#1e3a5f,#1e293b);border:2px solid var(--accent)}
+.fc-back{background:linear-gradient(135deg,#1a3c2a,#1e293b);border:2px solid var(--green);transform:rotateY(180deg)}
+.fc-label{font-size:.75rem;color:var(--dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.fc-text{font-size:1.15rem;line-height:1.5}
+.fc-formula{font-family:'Cascadia Code','Fira Code',monospace;color:var(--green);font-size:1.05rem;margin-top:8px}
+.fc-nav{display:flex;justify-content:center;gap:12px;margin-top:16px;align-items:center}
+.fc-count{color:var(--dim);font-size:.85rem;min-width:80px;text-align:center}
+.fc-hint{text-align:center;color:var(--dim);font-size:.8rem;margin-top:8px}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.dash-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.dash-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dash-card .icon{font-size:1.8rem;margin-bottom:8px}
+.dash-card h3{font-size:.95rem;margin-bottom:4px}
+.dash-card p{font-size:.8rem;color:var(--dim);line-height:1.4}
+.dash-card .prog{margin-top:10px;height:4px;background:var(--bg);border-radius:2px}
+.dash-card .prog-fill{height:100%;border-radius:2px;background:var(--green);transition:width .4s}
+.priority{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;margin-bottom:8px}
+.priority.high{background:rgba(239,68,68,.2);color:var(--red)}
+.priority.med{background:rgba(245,158,11,.2);color:var(--orange)}
+.priority.low{background:rgba(34,197,94,.2);color:var(--green)}
+
+/* FORMULA REF */
+.ref-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.ref-table th{text-align:left;padding:8px 10px;background:var(--bg);color:var(--accent);font-size:.8rem;border-bottom:2px solid var(--border)}
+.ref-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
+.ref-table tr:hover{background:rgba(59,130,246,.05)}
+.ref-cat{padding:10px;font-weight:700;color:var(--accent2);background:rgba(139,92,246,.05);font-size:.85rem}
+
+@media(max-width:600px){.app{padding:10px}.card{padding:14px}.fc-front,.fc-back{padding:16px}.fc-text{font-size:1rem}.dash-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const MODULES=[
+{id:'cash',title:'Cash Flow Statements',icon:'💰',priority:'high',desc:'CFO, CFI, CFF classifications & calculations',
+learn:[
+{type:'concept',text:'<b>Three sections of the Cash Flow Statement:</b><br>• <b>CFO</b> (Operations): Day-to-day — net income, depreciation, working capital changes<br>• <b>CFI</b> (Investing): Long-term assets — buying/selling equipment, property<br>• <b>CFF</b> (Financing): Capital — issuing stock, debt, paying dividends'},
+{type:'formula',text:'CFO = Net Income + Depreciation − ΔReceivables − ΔInventory + ΔPayables\nCFI = −Capital Expenditures + Sale of Assets\nCFF = New Debt − Debt Repaid + Stock Issued − Dividends Paid'},
+{type:'tip',text:'Depreciation is a NON-CASH expense — always added back to CFO. Working capital: ↑ assets = cash OUT, ↑ liabilities = cash IN.'},
+{type:'concept',text:'<b>Revenue vs Cash Flow:</b> Revenue (income statement) uses accrual accounting. Cash flow statement shows actual cash movements. A profitable company can still run out of cash!'},
+{type:'formula',text:'Ending RE = Beginning RE + Net Income − Dividends Paid\nNet Income = Dividends Paid + Change in Retained Earnings'},
+],
+quiz:[
+{q:'What happens when a country\'s currency is devalued?',opts:['Exports become more expensive','Imports become cheaper','Foreign investment increases','Exports become cheaper and more competitive'],ans:3,exp:'Currency devaluation makes a country\'s goods cheaper for foreign buyers, boosting exports.'},
+{q:'Retained earnings increase when:',opts:['Dividends are paid','Net income exceeds dividends paid','The company issues new stock','Total assets decrease'],ans:1,exp:'RE = Beginning RE + Net Income − Dividends. RE increases when net income > dividends.'},
+{q:'Which is NOT found on a cash flow statement?',opts:['Cash from operating activities','Cash from investing activities','Revenue from sales','Cash from financing activities'],ans:2,exp:'Revenue appears on the income statement, not the cash flow statement.'},
+{q:'Purchase of equipment belongs in which section?',opts:['Operating activities','Investing activities','Financing activities','Revenue activities'],ans:1,exp:'CFI includes purchases and sales of long-term assets like equipment.'},
+{q:'Positive net cash flow from operations indicates:',opts:['Company generates sufficient cash from core operations','Company is selling assets','Company is taking on more debt','Company is issuing new shares'],ans:0,exp:'Positive CFO = core business generates more cash than it consumes.'},
+{q:'Which statement shows financial position at a specific point in time?',opts:['Income statement','Balance sheet','Cash flow statement','Statement of retained earnings'],ans:1,exp:'Balance sheet = snapshot. Income statement = period of time.'},
+{q:'Cash flow from operations (CFO) is calculated as:',opts:['Net Income + Depreciation − Change in Operating Accounts','Revenue − Expenses','Total Assets − Total Liabilities','Net Income − Dividends'],ans:0,exp:'CFO uses the indirect method: start with net income, add back non-cash items, adjust for working capital changes.'},
+{q:'Which would appear in Cash Flow from Financing (CFF)?',opts:['Purchase of inventory','Sale of equipment','Issuance of bonds','Payment of wages'],ans:2,exp:'CFF includes debt issuance/repayment, stock issuance/repurchase, and dividends.'},
+]},
+{id:'ratios',title:'Financial Ratios & Analysis',icon:'📊',priority:'high',desc:'Liquidity, efficiency, profitability, market ratios & DuPont',
+learn:[
+{type:'formula',text:'LIQUIDITY:\nCurrent Ratio = Current Assets / Current Liabilities\nQuick Ratio = (Current Assets − Inventory) / Current Liabilities'},
+{type:'formula',text:'EFFICIENCY:\nTotal Asset Turnover = Sales / Total Assets\nFixed Asset Turnover = Sales / Fixed Assets\nReceivables Turnover = Credit Sales / AR\nInventory Turnover = COGS / Inventory'},
+{type:'formula',text:'LEVERAGE:\nDebt Ratio = Total Liabilities / Total Assets\nTIE = EBIT / Interest Expense\nFinancial Leverage Ratio = Total Assets / Equity'},
+{type:'formula',text:'PROFITABILITY:\nGross Margin = Gross Profit / Sales\nOperating Margin = EBIT / Sales\nNet Margin = Net Income / Sales\nROA = Net Income / Total Assets\nROE = Net Income / Equity'},
+{type:'formula',text:'MARKET:\nEPS = Net Income / Shares Outstanding\nP/E = Stock Price / EPS\nBook Value/Share = Equity / Shares Outstanding'},
+{type:'concept',text:'<b>DuPont Decomposition (HIGH PRIORITY):</b><br>ROE = Net Margin × Asset Turnover × Equity Multiplier<br>= (NI/Sales) × (Sales/Assets) × (Assets/Equity)<br>Breaks ROE into profitability, efficiency, and leverage.'},
+{type:'tip',text:'Quick ratio excludes inventory because it\'s the LEAST liquid current asset. TIE uses EBIT (not net income) because interest hasn\'t been paid yet.'},
+],
+quiz:[
+{q:'Gross profit is calculated as:',opts:['Revenue − Cost of Goods Sold','Revenue − All Expenses','Net Income + Taxes','Operating Income − Interest'],ans:0,exp:'Gross Profit = Revenue − COGS.'},
+{q:'Which item appears on the balance sheet?',opts:['Sales revenue','Cost of goods sold','Accounts receivable','Depreciation expense'],ans:2,exp:'AR is an asset on the balance sheet. The others are income statement items.'},
+{q:'Total asset turnover measures:',opts:['How quickly inventory is sold','How efficiently a firm uses assets to generate sales','The return on equity','The debt-to-equity ratio'],ans:1,exp:'TAT = Sales / Total Assets. Measures asset efficiency.'},
+{q:'If sales = $500K and total assets = $250K, TAT is:',opts:['2.0','0.5','1.5','2.5'],ans:0,exp:'TAT = $500K / $250K = 2.0.'},
+{q:'The current ratio measures:',opts:['Ability to pay short-term obligations','Long-term profitability','Asset efficiency','Debt management'],ans:0,exp:'Current Ratio = CA / CL. It\'s a liquidity measure.'},
+{q:'Quick ratio differs from current ratio by:',opts:['Including long-term debt','Excluding inventory from current assets','Including depreciation','Using total assets'],ans:1,exp:'Quick = (CA − Inventory) / CL. Inventory is least liquid.'},
+{q:'ROE is calculated as:',opts:['Net Income / Total Assets','Net Income / Equity','Sales / Total Equity','EBIT / Total Assets'],ans:1,exp:'ROE = Net Income / Equity. ROA = NI / Total Assets.'},
+{q:'TIE ratio measures:',opts:['Ability to meet interest payments from operating earnings','Total debt relative to equity','How quickly receivables are collected','Return on invested capital'],ans:0,exp:'TIE = EBIT / Interest Expense.'},
+{q:'Net income = $50K, sales = $500K, total assets = $1M. ROA is:',opts:['10%','5%','50%','20%'],ans:1,exp:'ROA = $50K / $1M = 5%.'},
+{q:'Profit margin is:',opts:['Sales / Total Assets','Net Income / Sales','Net Income / Total Equity','EBIT / Sales'],ans:1,exp:'Net Margin = NI / Sales.'},
+]},
+{id:'stocks',title:'Stocks, Valuation & Risk',icon:'📈',priority:'med',desc:'Common/preferred stock, Gordon Model, CAPM, Beta, diversification',
+learn:[
+{type:'concept',text:'<b>Common vs Preferred Stock:</b><br>• Common: voting rights, variable dividends, last in liquidation<br>• Preferred: no voting, fixed dividends, priority over common<br>• Book Value/Share = Equity / Shares Outstanding<br>• EPS = Net Income / Shares Outstanding'},
+{type:'formula',text:'GORDON GROWTH MODEL:\nStock Price = D₁ / (r − g)\nCost of Equity = (D₁ / P₀) + g\nwhere D₁ = next expected dividend, r = required return, g = growth rate'},
+{type:'concept',text:'<b>Risk Types:</b><br>• Systematic (market) risk: Cannot be diversified — measured by Beta<br>• Unsystematic (firm-specific) risk: CAN be diversified away<br>• Diversification reduces unsystematic risk only'},
+{type:'formula',text:'CAPM:\nRequired Return = Rf + β × (Rm − Rf)\nMarket Risk Premium = Rm − Rf\n\nBeta = 1 → same as market\nBeta > 1 → more volatile\nBeta < 1 → less volatile'},
+{type:'tip',text:'Gordon Model: if given "dividend of $2" — check if it\'s D₀ (most recent) or D₁ (next expected). If D₀, multiply by (1+g) to get D₁.'},
+],
+quiz:[
+{q:'Under Chapter 7 bankruptcy:',opts:['Assets are liquidated to pay creditors','Company reorganizes and continues','Only secured creditors are paid','Stockholders are paid first'],ans:0,exp:'Ch7 = liquidation. Ch11 = reorganization. Stockholders are last.'},
+{q:'Primary difference between common and preferred stock:',opts:['Common pays fixed dividends','Preferred has priority in dividends and liquidation','Common has no voting rights','Preferred always appreciates faster'],ans:1,exp:'Preferred gets dividends first and has higher priority in liquidation.'},
+{q:'Using Gordon Model: D=$2, r=10%, g=4%. Stock price?',opts:['$20.00','$33.33','$50.00','$40.00'],ans:1,exp:'P = $2 / (0.10 − 0.04) = $2 / 0.06 = $33.33.'},
+{q:'Diversification in a portfolio:',opts:['Eliminates all risk','Reduces unsystematic risk','Increases systematic risk','Guarantees higher returns'],ans:1,exp:'Diversification eliminates firm-specific risk but NOT market risk.'},
+{q:'A stock with beta of 1.5 means:',opts:['Stock is risk-free','Stock is 50% more volatile than market','Stock moves inversely to market','Stock has no systematic risk'],ans:1,exp:'Beta 1.5 = 50% more volatile. Market moves 10%, stock moves ~15%.'},
+{q:'Rf=3%, Rm=10%, β=1.2. Required return (CAPM)?',opts:['10.0%','11.4%','12.0%','13.0%'],ans:1,exp:'3% + 1.2×(10%−3%) = 3% + 8.4% = 11.4%.'},
+{q:'Market risk premium is:',opts:['Market Return − Risk-Free Rate','Required Return − Dividend Yield','Beta × Risk-Free Rate','Stock Return − Market Return'],ans:0,exp:'MRP = Rm − Rf.'},
+]},
+{id:'forecast',title:'Forecasting & Capital Structure',icon:'🏗️',priority:'med',desc:'SGR, DFN, percent of sales, leverage (DOL/DFL)',
+learn:[
+{type:'formula',text:'SUSTAINABLE GROWTH RATE:\nSGR = ROE × (1 − Dividend Payout Ratio)\nSGR = ROE × Retention Rate\nPayout Ratio = Dividends / Net Income'},
+{type:'formula',text:'PERCENT OF SALES METHOD:\nForecasted Item = (Item / Current Sales) × Projected Sales\n\nDISCRETIONARY FINANCING NEEDED:\nDFN = Projected Assets − Projected Liabilities − Projected Equity'},
+{type:'formula',text:'LEVERAGE:\nDOL = (Sales − Variable Costs) / EBIT\nDFL = EBIT / (EBIT − Interest Expense)\nDTL = DOL × DFL'},
+{type:'concept',text:'<b>Optimal Capital Structure</b> minimizes WACC (weighted average cost of capital), which maximizes firm value. More debt → tax benefits but higher bankruptcy risk.'},
+{type:'tip',text:'SGR = max growth without issuing new equity. Positive DFN = need external funds. DOL: high fixed costs → high sensitivity of EBIT to sales changes.'},
+],
+quiz:[
+{q:'Gordon Growth Model can estimate:',opts:['Company tax rate','Cost of equity and stock valuation','Optimal capital structure','Payback period'],ans:1,exp:'P = D₁/(r−g) for price; r = (D₁/P)+g for cost of equity.'},
+{q:'If COGS is historically 60% of sales and projected sales are $1M, projected COGS is:',opts:['$400,000','$600,000','$500,000','$700,000'],ans:1,exp:'60% × $1M = $600K. Percent of sales method.'},
+{q:'SGR represents:',opts:['Max growth without external financing','Minimum dividend payout','Optimal debt ratio','Break-even sales'],ans:0,exp:'SGR = ROE × Retention Rate. Max growth using only retained earnings.'},
+{q:'ROE=15%, payout ratio=40%. SGR is:',opts:['6%','9%','15%','12%'],ans:1,exp:'SGR = 15% × (1−0.40) = 15% × 0.60 = 9%.'},
+{q:'Financial leverage:',opts:['Amplifies both gains and losses for equity holders','Reduces cost of debt','Eliminates financial risk','Always increases stock price'],ans:0,exp:'Leverage magnifies returns up AND down.'},
+{q:'Optimal capital structure:',opts:['Minimizes WACC','Uses only equity','Maximizes debt ratio','Eliminates all taxes'],ans:0,exp:'The debt/equity mix that minimizes WACC maximizes firm value.'},
+{q:'DOL measures:',opts:['Sensitivity of EBIT to changes in sales','Ratio of debt to equity','Fixed cost ratio','Tax shield from debt'],ans:0,exp:'DOL = (Sales−VC)/EBIT. Higher DOL = EBIT is more sensitive to sales.'},
+{q:'DFN represents:',opts:['Additional external financing needed for growth','Total retained earnings','Maximum debt capacity','Cost of equity capital'],ans:0,exp:'DFN = Projected Assets − Projected Liabilities − Projected Equity.'},
+]},
+{id:'working',title:'Working Capital & Cash Mgmt',icon:'🏦',priority:'med',desc:'JIT, receivables, float, credit terms, inventory',
+learn:[
+{type:'concept',text:'<b>JIT (Just-in-Time):</b> Minimizes inventory by ordering only when needed. Reduces storage/holding costs but increases stockout risk.'},
+{type:'concept',text:'<b>Float:</b> Time delay between writing a check and actual cash outflow from the bank.<br><b>Operating Balance:</b> Minimum cash needed for day-to-day operations.'},
+{type:'concept',text:'<b>Credit Terms</b> — "2/10, net 30" means 2% discount if paid within 10 days, full amount due in 30 days. Setting terms affects the cash conversion cycle.'},
+{type:'tip',text:'Too much cash = opportunity cost (could be invested). Too little = risk of not meeting obligations. Balance is key.'},
+{type:'formula',text:'Receivables Turnover = Credit Sales / AR\nDays Sales Outstanding = 365 / Receivables Turnover\nInventory Turnover = COGS / Inventory'},
+],
+quiz:[
+{q:'JIT inventory affects working capital by:',opts:['Increasing working capital in inventory','Increasing receivables turnover','Decreasing current ratio','Reducing working capital tied up in inventory'],ans:3,exp:'JIT minimizes inventory holdings, freeing up working capital.'},
+{q:'Best ratio to assess credit policy efficiency:',opts:['Payables turnover','Asset turnover','Receivables turnover','Inventory turnover'],ans:2,exp:'AR Turnover = Credit Sales / AR. Directly tied to credit policy.'},
+{q:'Float in cash management is:',opts:['Time delay between writing a check and cash outflow','Depreciation of cash from inflation','Emergency cash reserve','Time for cash to double'],ans:0,exp:'Float = time between payment initiation and actual deduction.'},
+{q:'Why should a firm not carry too much cash?',opts:['To avoid large opportunity costs','To guard against higher interest payments','To keep cash ratio low for reporting','To prevent higher taxes'],ans:0,exp:'Excess cash earns little return. The opportunity cost is the forgone investment return.'},
+{q:'JIT effect on storage costs:',opts:['Increases by requiring more space','Maximizes by minimizing stockouts','No impact','Reduces by minimizing inventory levels'],ans:3,exp:'JIT keeps minimal inventory → drastically reduced storage costs.'},
+]},
+{id:'regs',title:'SEC & SOX Regulations',icon:'⚖️',priority:'low',desc:'SEC filings (10-K, 10-Q), Sarbanes-Oxley requirements',
+learn:[
+{type:'concept',text:'<b>SEC (Securities & Exchange Commission):</b><br>• Protects investors, maintains fair markets<br>• 10-K = ANNUAL comprehensive report<br>• 10-Q = QUARTERLY financial report<br>• SEC enforces disclosure — FASB sets accounting standards'},
+{type:'concept',text:'<b>Sarbanes-Oxley Act (SOX, 2002):</b><br>• Response to Enron and corporate scandals<br>• CEO/CFO must personally certify financial statements<br>• Requires internal controls over financial reporting<br>• Created PCAOB<br>• Audit committee must be independent (no employees/management)'},
+{type:'tip',text:'Easy memorization: 10-K = annual (K has more letters = bigger report). 10-Q = quarterly (Q = quarter). SOX = Scandals → Oversight → Controls.'},
+],
+quiz:[
+{q:'After going public, a company must file with the SEC:',opts:['Currency declarations','Federal Reserve certifications','Bank deposit insurance','Form 10-Q and Form 10-K'],ans:3,exp:'10-K = annual, 10-Q = quarterly. Required for public companies.'},
+{q:'SOX requires annual reports to include:',opts:['Statement that internal control has no impact','Auditors are responsible for internal control','Internal control is not important','Assessment of effectiveness of internal controls'],ans:3,exp:'SOX Section 404: management must assess and report on internal controls.'},
+{q:'SOX audit committee independence ensures:',opts:['Committees operate without undue influence from management','Committees benefit management','CEO directly manages audit committee','All members are internal employees'],ans:0,exp:'SOX requires independent directors on audit committee.'},
+{q:'Primary role of the SEC:',opts:['Offer financial services','Insure bank deposits','Ensure fair commodity trading','Regulate capital markets and protect investors'],ans:3,exp:'SEC mission: protect investors, maintain fair/efficient markets.'},
+]},
+{id:'capbudget',title:'Capital Budgeting & TVM',icon:'🧮',priority:'high',desc:'NPV, IRR, payback period, TVM Excel functions, bond calculations',
+learn:[
+{type:'formula',text:'PAYBACK PERIOD:\nYears until cumulative cash flows recover initial investment\n(Simple but ignores time value of money)'},
+{type:'formula',text:'NPV = Σ [CFt / (1+r)^t] − Initial Investment\nAccept if NPV > 0\n\nIRR = discount rate that makes NPV = 0\nAccept if IRR > required return\n\nWhen NPV and IRR conflict → NPV is preferred'},
+{type:'formula',text:'EXCEL TVM FUNCTIONS:\n=FV(rate, nper, pmt, pv, type)     → Future Value\n=PV(rate, nper, pmt, fv, type)     → Present Value\n=PMT(rate, nper, pv, fv, type)     → Payment\n=RATE(nper, pmt, pv, fv, type)     → Interest Rate\n=NPER(rate, pmt, pv, fv, type)     → Periods'},
+{type:'formula',text:'EXCEL NPV & IRR:\n=NPV(rate, CF1:CFn) + CF0        ← CF0 is negative!\n=IRR(CF0:CFn)'},
+{type:'tip',text:'SIGN CONVENTION: Cash OUT = negative, Cash IN = positive. Most common exam mistake! For NPV: Excel\'s NPV function does NOT include time-0 investment — add it separately.'},
+{type:'formula',text:'BOND VALUATION:\nBond Price = PV(YTM, n, coupon_pmt, face_value)\nYTM = RATE(n, coupon_pmt, -price, face_value)\n\nSemiannual: rate÷2, years×2, coupon÷2'},
+{type:'concept',text:'<b>Payback Period Example:</b><br>Investment: $80K. CFs: $15K, $20K, $35K, $40K, $41K<br>Cumulative: $15K, $35K, $70K, $110K, $151K<br>$80K recovered between Year 3 ($70K) and Year 4 ($110K) → <b>4 years</b>'},
+],
+quiz:[
+{q:'Payback period for $80K investment with CFs: $15K, $20K, $35K, $40K, $41K?',opts:['2 years','3 years','4 years','5 years'],ans:2,exp:'Cumulative: $15K→$35K→$70K→$110K. $80K recovered between Y3-Y4. Rounded up = 4.'},
+{q:'Which method recovers invested capital quickest?',opts:['IRR','Payback','Discount','NPV'],ans:1,exp:'Payback method focuses specifically on speed of capital recovery.'},
+{q:'In Excel TVM, cash outflows should be:',opts:['Positive','Zero','Negative','Absolute value'],ans:2,exp:'Cash OUT = negative, cash IN = positive. Critical sign convention!'},
+{q:'Excel NPV function:',opts:['Includes time-0 investment','Does NOT include time-0 investment','Only works with equal cash flows','Returns IRR'],ans:1,exp:'=NPV(rate, CF1:CFn) + CF0. You must add the initial investment separately.'},
+{q:'Accept a project when:',opts:['NPV < 0','IRR < required return','NPV > 0','Payback > target'],ans:2,exp:'NPV > 0 means the project adds value. Accept!'},
+{q:'For semiannual bonds, you must:',opts:['Double the rate and halve the periods','Halve the rate and double the periods','Use annual values only','Ignore compounding'],ans:1,exp:'Semiannual: rate÷2, years×2, coupon payment÷2.'},
+]},
+];
+
+const FLASHCARDS=[
+{front:'Current Ratio',back:'Current Assets / Current Liabilities',cat:'Liquidity'},
+{front:'Quick Ratio',back:'(Current Assets − Inventory) / Current Liabilities',cat:'Liquidity'},
+{front:'Total Asset Turnover',back:'Sales / Total Assets',cat:'Efficiency'},
+{front:'Fixed Asset Turnover',back:'Sales / Fixed Assets',cat:'Efficiency'},
+{front:'Receivables Turnover',back:'Credit Sales / AR',cat:'Efficiency'},
+{front:'Inventory Turnover',back:'COGS / Inventory',cat:'Efficiency'},
+{front:'Debt Ratio',back:'Total Liabilities / Total Assets',cat:'Leverage'},
+{front:'Times Interest Earned (TIE)',back:'EBIT / Interest Expense',cat:'Leverage'},
+{front:'Financial Leverage Ratio',back:'Total Assets / Equity',cat:'Leverage'},
+{front:'ROA',back:'Net Income / Total Assets',cat:'Profitability'},
+{front:'ROE',back:'Net Income / Equity',cat:'Profitability'},
+{front:'DuPont ROE',back:'(NI/Sales) × (Sales/Assets) × (Assets/Equity)\n= Margin × Turnover × Leverage',cat:'Profitability'},
+{front:'Gross Margin',back:'Gross Profit / Sales',cat:'Profitability'},
+{front:'Net Margin',back:'Net Income / Sales',cat:'Profitability'},
+{front:'EPS',back:'Net Income / Shares Outstanding',cat:'Market'},
+{front:'P/E Ratio',back:'Stock Price / EPS',cat:'Market'},
+{front:'Book Value per Share',back:'Equity / Shares Outstanding',cat:'Market'},
+{front:'CAPM',back:'Rf + β × (Rm − Rf)',cat:'Valuation'},
+{front:'Gordon Growth Model (Price)',back:'D₁ / (r − g)',cat:'Valuation'},
+{front:'Gordon Growth (Cost of Equity)',back:'(D₁ / P₀) + g',cat:'Valuation'},
+{front:'Sustainable Growth Rate',back:'ROE × (1 − Payout Ratio)',cat:'Growth'},
+{front:'DFN',back:'Projected Assets − Projected Liabilities − Projected Equity',cat:'Growth'},
+{front:'DOL',back:'(Sales − Variable Costs) / EBIT',cat:'Leverage'},
+{front:'DFL',back:'EBIT / (EBIT − Interest Expense)',cat:'Leverage'},
+{front:'CFO (indirect)',back:'Net Income + Depreciation − ΔOperating Assets + ΔOperating Liabilities',cat:'Cash Flow'},
+{front:'CFF',back:'ΔLT Debt + ΔStock − Dividends Paid',cat:'Cash Flow'},
+{front:'Retained Earnings',back:'Beginning RE + Net Income − Dividends',cat:'Cash Flow'},
+{front:'NPV Decision Rule',back:'Accept if NPV > 0\nReject if NPV < 0',cat:'Cap Budget'},
+{front:'IRR Decision Rule',back:'Accept if IRR > required return',cat:'Cap Budget'},
+{front:'Excel NPV',back:'=NPV(rate, CF1:CFn) + CF0\n(CF0 is negative!)',cat:'Cap Budget'},
+{front:'Bond Price (Excel)',back:'=PV(YTM, nper, -coupon_pmt, -face_value)',cat:'Bonds'},
+{front:'YTM (Excel)',back:'=RATE(nper, coupon_pmt, -price, face_value)',cat:'Bonds'},
+];
+
+// STATE
+let state={view:'dashboard',moduleProgress:{},quizState:{},fcIndex:0,fcFlipped:false};
+MODULES.forEach(m=>{state.moduleProgress[m.id]={learnDone:false,quizScore:null,quizTotal:m.quiz.length};state.quizState[m.id]={current:0,answers:[],done:false}});
+
+function getTotalProgress(){
+let done=0,total=MODULES.length*2;
+MODULES.forEach(m=>{if(state.moduleProgress[m.id].learnDone)done++;if(state.moduleProgress[m.id].quizScore!==null)done++});
+return Math.round(done/total*100);
+}
+
+function render(){
+const app=document.getElementById('app');
+const prog=getTotalProgress();
+let html=`<div class="topbar"><h1>C214 Financial Management</h1><span class="stat">${prog}% Complete</span></div><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${prog}%"></div></div>`;
+html+=`<div class="tabs">`;
+html+=`<div class="tab ${state.view==='dashboard'?'active':''}" onclick="nav('dashboard')">Dashboard</div>`;
+MODULES.forEach(m=>{
+const p=state.moduleProgress[m.id];
+const done=p.learnDone&&p.quizScore!==null;
+html+=`<div class="tab ${state.view===m.id?'active':''} ${done?'done':''}" onclick="nav('${m.id}')">${m.icon} ${m.title.split(' ')[0]}<span class="badge">${done?'✓':p.quizScore!==null?p.quizScore+'/'+p.quizTotal:'—'}</span></div>`;
+});
+html+=`<div class="tab ${state.view==='flashcards'?'active':''}" onclick="nav('flashcards')">🃏 Flashcards</div>`;
+html+=`<div class="tab ${state.view==='formulas'?'active':''}" onclick="nav('formulas')">📋 Formulas</div>`;
+html+=`</div>`;
+
+// VIEWS
+html+=renderDashboard();
+MODULES.forEach(m=>html+=renderModule(m));
+html+=renderFlashcards();
+html+=renderFormulas();
+
+app.innerHTML=html;
+}
+
+function nav(v){state.view=v;render()}
+
+function renderDashboard(){
+let h=`<div class="view ${state.view==='dashboard'?'active':''}">`;
+h+=`<div class="card"><h2>Your Study Dashboard</h2><p style="color:var(--dim);margin-bottom:16px">Work through each module: learn the concepts, then take the quiz. Aim for 100% on every quiz before the exam.</p></div>`;
+h+=`<div class="dash-grid">`;
+MODULES.forEach(m=>{
+const p=state.moduleProgress[m.id];
+const pct=((p.learnDone?50:0)+(p.quizScore!==null?50:0));
+h+=`<div class="dash-card" onclick="nav('${m.id}')"><span class="priority ${m.priority}">${m.priority.toUpperCase()}</span><div class="icon">${m.icon}</div><h3>${m.title}</h3><p>${m.desc}</p><div style="margin-top:8px;font-size:.78rem;color:var(--dim)">${p.learnDone?'✅ Learned':'📖 Not started'} · ${p.quizScore!==null?'✅ '+p.quizScore+'/'+p.quizTotal:'❓ Quiz pending'}</div><div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+});
+h+=`<div class="dash-card" onclick="nav('flashcards')"><div class="icon">🃏</div><h3>Formula Flashcards</h3><p>${FLASHCARDS.length} cards to drill all key formulas</p></div>`;
+h+=`<div class="dash-card" onclick="nav('formulas')"><div class="icon">📋</div><h3>Formula Reference</h3><p>Complete formula sheet for quick lookup</p></div>`;
+h+=`</div></div>`;
+return h;
+}
+
+function renderModule(m){
+const qs=state.quizState[m.id];
+const p=state.moduleProgress[m.id];
+let h=`<div class="view ${state.view===m.id?'active':''}">`;
+
+// LEARN SECTION
+h+=`<div class="card"><h2>${m.icon} ${m.title} — Learn</h2>`;
+m.learn.forEach(item=>{
+if(item.type==='formula')h+=`<div class="formula">${item.text}</div>`;
+else if(item.type==='concept')h+=`<div class="concept">${item.text}</div>`;
+else if(item.type==='tip')h+=`<div class="tip">💡 ${item.text}</div>`;
+});
+if(!p.learnDone)h+=`<div style="margin-top:16px"><button class="btn btn-primary" onclick="markLearned('${m.id}')">✅ I've reviewed this — go to quiz</button></div>`;
+else h+=`<div style="margin-top:12px;color:var(--green);font-size:.9rem">✅ Marked as reviewed</div>`;
+h+=`</div>`;
+
+// QUIZ SECTION
+h+=`<div class="card">`;
+if(!qs.done){
+const qi=qs.current;
+const question=m.quiz[qi];
+const answered=qs.answers[qi]!==undefined;
+h+=`<div class="quiz-header"><h2>Quiz</h2><span class="q-counter">Question ${qi+1} of ${m.quiz.length}</span></div>`;
+h+=`<div class="question">${question.q}</div>`;
+h+=`<div class="options">`;
+question.opts.forEach((o,i)=>{
+let cls='option';
+if(answered){
+cls+=' disabled';
+if(i===question.ans)cls+=' correct';
+if(qs.answers[qi]===i&&i!==question.ans)cls+=' wrong';
+}else if(qs.answers[qi]===i)cls+=' selected';
+h+=`<div class="${cls}" onclick="selectAnswer('${m.id}',${qi},${i})">${String.fromCharCode(65+i)}) ${o}</div>`;
+});
+h+=`</div>`;
+h+=`<div class="explanation ${answered?'show':''}">💡 ${answered?question.exp:''}</div>`;
+h+=`<div class="quiz-nav">`;
+h+=`<button class="btn btn-secondary" ${qi===0?'disabled':''} onclick="quizNav('${m.id}',-1)">← Previous</button>`;
+if(answered&&qi<m.quiz.length-1)h+=`<button class="btn btn-primary" onclick="quizNav('${m.id}',1)">Next →</button>`;
+else if(answered&&qi===m.quiz.length-1)h+=`<button class="btn btn-success" onclick="finishQuiz('${m.id}')">See Results</button>`;
+h+=`</div>`;
+}else{
+const score=qs.answers.filter((a,i)=>a===m.quiz[i].ans).length;
+const pct=Math.round(score/m.quiz.length*100);
+const grade=pct>=80?'pass':pct>=60?'ok':'fail';
+h+=`<div class="score-card"><div class="score-label">Quiz Complete!</div><div class="score-big ${grade}">${pct}%</div><div class="score-msg">${score} out of ${m.quiz.length} correct</div>`;
+h+=`<div style="margin-top:16px"><button class="btn btn-secondary" onclick="retakeQuiz('${m.id}')">Retake Quiz</button></div></div>`;
+}
+h+=`</div></div>`;
+return h;
+}
+
+function renderFlashcards(){
+const fc=FLASHCARDS[state.fcIndex];
+let h=`<div class="view ${state.view==='flashcards'?'active':''}">`;
+h+=`<div class="card"><h2>🃏 Formula Flashcards</h2><p style="color:var(--dim)">Click the card to flip. Master all ${FLASHCARDS.length} formulas.</p></div>`;
+h+=`<div class="fc-container" onclick="flipCard()"><div class="fc-inner ${state.fcFlipped?'flipped':''}">`;
+h+=`<div class="fc-front"><div class="fc-label">${fc.cat}</div><div class="fc-text">${fc.front}</div></div>`;
+h+=`<div class="fc-back"><div class="fc-label">Formula</div><div class="fc-formula">${fc.back.replace(/\n/g,'<br>')}</div></div>`;
+h+=`</div></div>`;
+h+=`<div class="fc-hint">Click card to flip</div>`;
+h+=`<div class="fc-nav"><button class="btn btn-secondary" onclick="fcNav(-1)" ${state.fcIndex===0?'disabled':''}>←</button><span class="fc-count">${state.fcIndex+1} / ${FLASHCARDS.length}</span><button class="btn btn-secondary" onclick="fcNav(1)" ${state.fcIndex===FLASHCARDS.length-1?'disabled':''}>→</button></div>`;
+h+=`<div style="text-align:center;margin-top:12px"><button class="btn btn-primary" onclick="shuffleCards()">🔀 Shuffle</button></div>`;
+h+=`</div>`;
+return h;
+}
+
+function renderFormulas(){
+let h=`<div class="view ${state.view==='formulas'?'active':''}">`;
+h+=`<div class="card"><h2>📋 Complete Formula Reference</h2>`;
+h+=`<table class="ref-table"><tr><th>Formula</th><th>Equation</th></tr>`;
+const cats=[['Cash Flows','CFO, CFI, CFF, RE'],['Liquidity','Current, Quick'],['Efficiency','TAT, FAT, AR Turn, Inv Turn'],['Leverage','Debt, TIE, FLR, DOL, DFL'],['Profitability','Margins, ROA, ROE, DuPont'],['Market','EPS, P/E, BVPS'],['Valuation','CAPM, Gordon Growth'],['Growth','SGR, DFN'],['Capital Budgeting','NPV, IRR, Payback'],['Excel TVM','FV, PV, PMT, RATE, NPER'],['Bonds','Price, YTM']];
+const formulas=[
+[['CFO','NI + Depreciation − ΔOp Assets + ΔOp Liabilities'],['CFF','ΔLT Debt + ΔStock − Dividends'],['CFI','(ΔGross PPE) × (−1)'],['Ending RE','Beg RE + NI − Dividends']],
+[['Current Ratio','Current Assets / Current Liabilities'],['Quick Ratio','(CA − Inventory) / CL']],
+[['Total Asset Turnover','Sales / Total Assets'],['Fixed Asset Turnover','Sales / Fixed Assets'],['AR Turnover','Credit Sales / AR'],['Inventory Turnover','COGS / Inventory']],
+[['Debt Ratio','Total Liabilities / Total Assets'],['TIE','EBIT / Interest Expense'],['Fin. Leverage Ratio','Total Assets / Equity'],['DOL','(Sales − VC) / EBIT'],['DFL','EBIT / (EBIT − Interest)']],
+[['Gross Margin','Gross Profit / Sales'],['Operating Margin','EBIT / Sales'],['Net Margin','NI / Sales'],['ROA','NI / Total Assets'],['ROE','NI / Equity'],['DuPont ROE','(NI/Sales)×(Sales/TA)×(TA/Eq)']],
+[['EPS','NI / Shares Outstanding'],['P/E Ratio','Price / EPS'],['Book Value/Share','Equity / Shares Outstanding']],
+[['CAPM','Rf + β(Rm − Rf)'],['Gordon Growth Price','D₁ / (r − g)'],['Cost of Equity (GGM)','(D₁ / P₀) + g']],
+[['SGR','ROE × (1 − Payout Ratio)'],['DFN','Proj Assets − Proj Liab − Proj Equity']],
+[['NPV','Σ[CFt/(1+r)^t] − Initial Investment'],['IRR','Rate where NPV = 0'],['Payback','Years to recover initial investment']],
+[['FV','=FV(rate, nper, pmt, pv, type)'],['PV','=PV(rate, nper, pmt, fv, type)'],['PMT','=PMT(rate, nper, pv, fv, type)'],['NPV (Excel)','=NPV(rate,CF1:CFn)+CF0']],
+[['Bond Price','=PV(YTM, n, -coupon, -face)'],['YTM','=RATE(n, coupon, -price, face)'],['Semiannual','rate÷2, years×2, coupon÷2']],
+];
+cats.forEach((c,ci)=>{
+h+=`<tr><td class="ref-cat" colspan="2">${c[0]}</td></tr>`;
+formulas[ci].forEach(f=>{h+=`<tr><td><b>${f[0]}</b></td><td style="font-family:monospace;color:var(--green)">${f[1]}</td></tr>`});
+});
+h+=`</table></div></div>`;
+return h;
+}
+
+// ACTIONS
+function markLearned(id){state.moduleProgress[id].learnDone=true;render()}
+function selectAnswer(id,qi,ai){
+if(state.quizState[id].answers[qi]!==undefined)return;
+state.quizState[id].answers[qi]=ai;render();
+}
+function quizNav(id,dir){state.quizState[id].current+=dir;render()}
+function finishQuiz(id){
+const qs=state.quizState[id];
+qs.done=true;
+const score=qs.answers.filter((a,i)=>a===MODULES.find(m=>m.id===id).quiz[i].ans).length;
+state.moduleProgress[id].quizScore=score;
+render();
+}
+function retakeQuiz(id){
+const m=MODULES.find(x=>x.id===id);
+state.quizState[id]={current:0,answers:[],done:false};
+state.moduleProgress[id].quizScore=null;
+render();
+}
+function flipCard(){state.fcFlipped=!state.fcFlipped;render()}
+function fcNav(dir){state.fcIndex+=dir;state.fcFlipped=false;render()}
+function shuffleCards(){
+for(let i=FLASHCARDS.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[FLASHCARDS[i],FLASHCARDS[j]]=[FLASHCARDS[j],FLASHCARDS[i]]}
+state.fcIndex=0;state.fcFlipped=false;render();
+}
+
+render();
+</script>
+</body>
+</html>
